@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <form action="/<%= @id %>" method="POST">
+    <input type="hidden" name="_method" value="PATCH">
+    <input type="text" name="title" value="<%= @memo_data[:title] %>" required>
+    <textarea name="body" rows="5"><%= @memo_data[:body] %></textarea>
+      <input type="submit" value="登録">
+      <input type="button" value="topへ戻る" onclick="location.href='/'">
+  </form>
+</body>
+</html>
