@@ -4,23 +4,27 @@ require 'sinatra'
 require 'sinatra/reloader'
 require 'securerandom'
 
-def open_memo
+helpers do
+  def h(text)
+    Rack::Utils.escape_html(text)
+  end
+end
+
+def open_memo(name)
+  @id = name
   @memo_data = { title: '', body: '' }
-  File.open("#{@id}.txt", 'r') do |file_data|
-    i = 0
-    file_data.each_line do |line|
+  File.open("#{name}.txt", 'r') do |file_data|
+    file_data.each_line.with_index(0) do |line, i|
       if i < 1
         @memo_data[:title] = line
       else
         @memo_data[:body] += line
       end
-      i += 1
     end
   end
 end
 
 def update_memo(name)
-  @memo_data = { title: params[:title], body: params[:body] }
   File.open("#{name}.txt", 'w') do |file_data|
     file_data.puts params[:title]
     file_data.puts params[:body]
@@ -28,15 +32,16 @@ def update_memo(name)
 end
 
 get '/' do
-  @file_names = Dir.glob('*.txt').sort_by do |f|
+  file_names = Dir.glob('*.txt').sort_by do |f|
     File.mtime(f)
   end
-  @file_name = @file_names.map do |file_name|
-    File.basename(file_name, '.txt')
+  memo_names = file_names.map do |memo_name|
+    File.basename(memo_name, '.txt')
   end
-  @titles = @file_names.map do |title|
+  titles = file_names.map do |title|
     File.open(title, 'r', &:gets)
   end
+  @memo_name_title = memo_names.zip(titles)
   erb :top
 end
 
@@ -55,26 +60,21 @@ post '/' do
 end
 
 get '/:id' do
-  @id = params[:id]
-  open_memo
+  open_memo(params[:id])
   erb :show
 end
 
 patch '/:id' do
-  @id = params[:id]
-  update_memo(@id)
-  erb :show
-  redirect to("/#{@id}")
+  update_memo(params[:id])
+  redirect to("/#{id}")
 end
 
 get '/:id/edit' do
-  @id = params[:id]
-  open_memo
+  open_memo(params[:id])
   erb :edit
 end
 
 delete '/:id' do
-  @id = params[:id]
-  File.delete("#{@id}.txt")
+  File.delete("#{params[:id]}.txt")
   redirect to('/')
 end
