@@ -1,14 +1,8 @@
-<head>
-  <title>show</title>
-</head>
-<body>
-  <%= h(@memo_data[:title]) %>
-  <%= h(@memo_data[:body]) %>
-  <div><input type="button" value="変更" onclick="location.href='/<%= @id %>/edit'"></div>
-  <form action="/<%= @id %>" method="POST">
-    <input type="hidden" name="_method" value="DELETE">
-    <input type="submit" value="削除">
-  </form>
-  <input type="button" value="topへ戻る" onclick="location.href='/'">
-</body>
-</html>
+<%= h(@memo_data[:title]) %>
+<%= h(@memo_data[:body]) %>
+<div><input type="button" value="変更" onclick="location.href='/<%= @id %>/edit'"></div>
+<form action="/<%= @id %>" method="POST">
+  <input type="hidden" name="_method" value="DELETE">
+  <input type="submit" value="削除">
+</form>
+<input type="button" value="topへ戻る" onclick="location.href='/'">

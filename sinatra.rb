@@ -41,7 +41,7 @@ get '/' do
   titles = file_names.map do |title|
     File.open(title, 'r', &:gets)
   end
-  @memo_name_title = memo_names.zip(titles)
+  @memo_names_titles = memo_names.zip(titles)
   erb :top
 end
 

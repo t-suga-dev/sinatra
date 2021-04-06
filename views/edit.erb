@@ -1,13 +1,7 @@
-<head>
-  <title>edit</title>
-</head>
-<body>
-  <form action="/<%= @id %>" method="POST">
-    <input type="hidden" name="_method" value="PATCH">
-    <div><input type="text" name="title" value="<%= h(@memo_data[:title]) %>" required></div>
-    <div><textarea name="body" rows="5"><%= h(@memo_data[:body]) %></textarea></div>
-      <div><input type="submit" value="登録"></div>
-      <div><input type="button" value="topへ戻る" onclick="location.href='/'"></div>
-  </form>
-</body>
-</html>
+<form action="/<%= @id %>" method="POST">
+  <input type="hidden" name="_method" value="PATCH">
+  <div><input type="text" name="title" value="<%= h(@memo_data[:title]) %>" required></div>
+  <div><textarea name="body" rows="5"><%= h(@memo_data[:body]) %></textarea></div>
+    <div><input type="submit" value="登録"></div>
+    <div><input type="button" value="topへ戻る" onclick="location.href='/'"></div>
+</form>
