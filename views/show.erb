@@ -1,5 +1,5 @@
-<%= h(@memo_data[:title]) %>
-<%= h(@memo_data[:body]) %>
+<div><%= h(@memo_data["title"]) %></div>
+<div><%= h(@memo_data["body"]) %></div>
 <div><input type="button" value="変更" onclick="location.href='/<%= @id %>/edit'"></div>
 <form action="/<%= @id %>" method="POST">
   <input type="hidden" name="_method" value="DELETE">

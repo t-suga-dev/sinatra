@@ -3,6 +3,15 @@
 require 'sinatra'
 require 'sinatra/reloader'
 require 'securerandom'
+require 'pg'
+
+def db_connect
+  @connection = PG::connect(
+    host: 'localhost',
+    user: '',
+    password: '',
+    dbname: 'postgres')
+end
 
 helpers do
   def h(text)
@@ -32,16 +41,13 @@ def update_memo(name)
 end
 
 get '/' do
-  file_names = Dir.glob('*.txt').sort_by do |f|
-    File.mtime(f)
+  db_connect
+  @connection.exec('SELECT * FROM memo_db ORDER BY id ASC') do |result|
+    @memo_names_titles = []
+    result.each do |memo_name_title|
+      @memo_names_titles << memo_name_title
+    end
   end
-  memo_names = file_names.map do |memo_name|
-    File.basename(memo_name, '.txt')
-  end
-  titles = file_names.map do |title|
-    File.open(title, 'r', &:gets)
-  end
-  @memo_names_titles = memo_names.zip(titles)
   erb :top
 end
 
@@ -54,13 +60,25 @@ get '/edit' do
 end
 
 post '/' do
-  file_name_id = SecureRandom.uuid
-  update_memo(file_name_id)
-  redirect to("/#{file_name_id}")
+  title = params[:title]
+  body = params[:body]
+  db_connect
+  @connection.exec('SELECT * FROM memo_db ORDER BY id DESC LIMIT 1') do |result|
+    @memo_id = 1
+    result.each do |count|
+      count = count['id'].to_i + 1
+      @memo_id = count.to_s
+    end
+    @connection.exec('INSERT INTO memo_db VALUES ($1, $2, $3);', [@memo_id, title, body])
+  end
+  redirect to("/#{@memo_id}")
 end
 
 get '/:id' do
-  open_memo(params[:id])
+  db_connect
+  @id = params[:id]
+  memo_id = @connection.exec('SELECT * FROM memo_db WHERE id=($1);', [@id])
+  @memo_data = memo_id[0]
   erb :show
 end
 

@@ -1,6 +1,6 @@
 <ul class="memo_list">
-  <% @memo_names_titles.each do |memo, title| %>
-    <li><a href="/<%= h(memo) %>"><%= h(title) %></a></li>
+  <% @memo_names_titles.each do |memo_name_title| %>
+    <li><a href="/<%= memo_name_title["id"] %>"><%= memo_name_title["title"] %></a></li>
   <% end %>
 </ul>
 <input type="button" onclick="location.href='/new'"value="新規作成">
