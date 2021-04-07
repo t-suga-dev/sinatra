@@ -93,6 +93,7 @@ get '/:id/edit' do
 end
 
 delete '/:id' do
-  File.delete("#{params[:id]}.txt")
-  redirect to('/')
+  db_connect
+  @connection.exec('DELETE FROM memo_db WHERE id=($1);', [params[:id]])
+  redirect '/'
 end
