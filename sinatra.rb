@@ -58,11 +58,12 @@ get '/:id' do
 end
 
 patch '/:id' do
+  id = params[:id]
   title = params[:title]
   body = params[:body]
   db_connect
-  @connection.exec("UPDATE memo_db SET title=($1), body=($2) WHERE id='#{params[:id]}';", [title, body])
-  redirect to("/#{params[:id]}")
+  @connection.exec("UPDATE memo_db SET title=($1), body=($2) WHERE id='#{id}';", [title, body])
+  redirect to("/#{id}")
 end
 
 get '/:id/edit' do
@@ -75,6 +76,7 @@ end
 
 delete '/:id' do
   db_connect
-  @connection.exec('DELETE FROM memo_db WHERE id=($1);', [params[:id]])
-  redirect '/'
+  id = params[:id]
+  @connection.exec('DELETE FROM memo_db WHERE id=($1);', [id])
+  redirect to '/'
 end
