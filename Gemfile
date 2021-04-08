@@ -14,3 +14,4 @@ gem 'rubocop-rails', require:false
 group :development do
   gem 'rubocop-fjord', require: false
 end
+gem 'pg'

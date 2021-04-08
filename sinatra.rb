@@ -3,6 +3,11 @@
 require 'sinatra'
 require 'sinatra/reloader'
 require 'securerandom'
+require 'pg'
+
+def db_connect
+  @connection = PG.connect(dbname: 'postgres')
+end
 
 helpers do
   def h(text)
@@ -10,38 +15,14 @@ helpers do
   end
 end
 
-def open_memo(name)
-  @id = name
-  @memo_data = { title: '', body: '' }
-  File.open("#{name}.txt", 'r') do |file_data|
-    file_data.each_line.with_index(0) do |line, i|
-      if i < 1
-        @memo_data[:title] = line
-      else
-        @memo_data[:body] += line
-      end
+get '/' do
+  db_connect
+  @connection.exec('SELECT * FROM memo_db ORDER BY id ASC') do |result|
+    @memo_names_titles = []
+    result.each do |memo_name_title|
+      @memo_names_titles << memo_name_title
     end
   end
-end
-
-def update_memo(name)
-  File.open("#{name}.txt", 'w') do |file_data|
-    file_data.puts params[:title]
-    file_data.puts params[:body]
-  end
-end
-
-get '/' do
-  file_names = Dir.glob('*.txt').sort_by do |f|
-    File.mtime(f)
-  end
-  memo_names = file_names.map do |memo_name|
-    File.basename(memo_name, '.txt')
-  end
-  titles = file_names.map do |title|
-    File.open(title, 'r', &:gets)
-  end
-  @memo_names_titles = memo_names.zip(titles)
   erb :top
 end
 
@@ -54,27 +35,48 @@ get '/edit' do
 end
 
 post '/' do
-  file_name_id = SecureRandom.uuid
-  update_memo(file_name_id)
-  redirect to("/#{file_name_id}")
+  title = params[:title]
+  body = params[:body]
+  db_connect
+  @connection.exec('SELECT * FROM memo_db ORDER BY id DESC LIMIT 1') do |result|
+    @memo_id = 1
+    result.each do |count|
+      count = count['id'].to_i + 1
+      @memo_id = count.to_s
+    end
+    @connection.exec('INSERT INTO memo_db VALUES ($1, $2, $3);', [@memo_id, title, body])
+  end
+  redirect to("/#{@memo_id}")
 end
 
 get '/:id' do
-  open_memo(params[:id])
+  db_connect
+  @id = params[:id]
+  memo_id = @connection.exec('SELECT * FROM memo_db WHERE id=($1);', [@id])
+  @memo_data = memo_id[0]
   erb :show
 end
 
 patch '/:id' do
-  update_memo(params[:id])
+  id = params[:id]
+  title = params[:title]
+  body = params[:body]
+  db_connect
+  @connection.exec("UPDATE memo_db SET title=($1), body=($2) WHERE id='#{id}';", [title, body])
   redirect to("/#{id}")
 end
 
 get '/:id/edit' do
-  open_memo(params[:id])
+  db_connect
+  @id = params[:id]
+  memo_id = @connection.exec('SELECT * FROM memo_db WHERE id=($1);', [@id])
+  @memo_data = memo_id[0]
   erb :edit
 end
 
 delete '/:id' do
-  File.delete("#{params[:id]}.txt")
-  redirect to('/')
+  db_connect
+  id = params[:id]
+  @connection.exec('DELETE FROM memo_db WHERE id=($1);', [id])
+  redirect to '/'
 end
