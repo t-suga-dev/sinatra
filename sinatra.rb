@@ -6,37 +6,12 @@ require 'securerandom'
 require 'pg'
 
 def db_connect
-  @connection = PG::connect(
-    host: 'localhost',
-    user: '',
-    password: '',
-    dbname: 'postgres')
+  @connection = PG::connect(dbname: 'postgres')
 end
 
 helpers do
   def h(text)
     Rack::Utils.escape_html(text)
-  end
-end
-
-def open_memo(name)
-  @id = name
-  @memo_data = { title: '', body: '' }
-  File.open("#{name}.txt", 'r') do |file_data|
-    file_data.each_line.with_index(0) do |line, i|
-      if i < 1
-        @memo_data[:title] = line
-      else
-        @memo_data[:body] += line
-      end
-    end
-  end
-end
-
-def update_memo(name)
-  File.open("#{name}.txt", 'w') do |file_data|
-    file_data.puts params[:title]
-    file_data.puts params[:body]
   end
 end
 
@@ -83,12 +58,18 @@ get '/:id' do
 end
 
 patch '/:id' do
-  update_memo(params[:id])
-  redirect to("/#{id}")
+  title = params[:title]
+  body = params[:body]
+  db_connect
+  @connection.exec("UPDATE memo_db SET title=($1), body=($2) WHERE id='#{params[:id]}';", [title, body])
+  redirect to("/#{params[:id]}")
 end
 
 get '/:id/edit' do
-  open_memo(params[:id])
+  db_connect
+  @id = params[:id]
+  memo_id = @connection.exec('SELECT * FROM memo_db WHERE id=($1);', [@id])
+  @memo_data = memo_id[0]
   erb :edit
 end
 
