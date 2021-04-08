@@ -6,7 +6,7 @@ require 'securerandom'
 require 'pg'
 
 def db_connect
-  @connection = PG::connect(dbname: 'postgres')
+  @connection = PG.connect(dbname: 'postgres')
 end
 
 helpers do
